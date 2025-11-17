@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,9 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Logo } from '@/components/Logo';
 import { ArrowLeft, Info } from 'lucide-react';
+import { useSubscriptions } from '@/hooks/useSubscriptions';
+import { useAuth } from '@/contexts/AuthContext';
+import { useToast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -17,6 +20,9 @@ import {
 
 const AddSubscription = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addSubscription } = useSubscriptions();
+  const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
     category: 'OTT' as 'OTT' | 'Fitness' | 'Software' | 'Other',
@@ -26,9 +32,27 @@ const AddSubscription = () => {
     alertsEnabled: true,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    navigate('/success', { state: { message: "Subscription added successfully!" } });
+    try {
+      await addSubscription.mutateAsync({
+        name: formData.name,
+        category: formData.category,
+        cost: parseFloat(formData.cost),
+        billingCycle: formData.billingCycle,
+        nextRenewalDate: formData.renewalDate,
+        alertsEnabled: formData.alertsEnabled,
+      });
+      navigate('/dashboard');
+    } catch (error) {
+      // Error is handled by the mutation
+    }
   };
 
   return (
