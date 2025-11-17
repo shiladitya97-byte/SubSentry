@@ -1,5 +1,6 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,20 +15,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { subscriptionSchema, SubscriptionFormData } from '@/lib/validationSchemas';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 
 const AddSubscription = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: '',
-    category: 'OTT' as 'OTT' | 'Fitness' | 'Software' | 'Other',
-    cost: '',
-    billingCycle: 'Monthly' as 'Monthly' | 'Yearly',
-    renewalDate: '',
-    alertsEnabled: true,
+  
+  const form = useForm<SubscriptionFormData>({
+    resolver: zodResolver(subscriptionSchema),
+    defaultValues: {
+      name: '',
+      category: 'OTT',
+      cost: '',
+      billingCycle: 'Monthly',
+      renewalDate: '',
+      alertsEnabled: true,
+    },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = (data: SubscriptionFormData) => {
+    console.log('Form validated:', data);
     navigate('/success', { state: { message: "Subscription added successfully!" } });
   };
 
@@ -55,103 +69,138 @@ const AddSubscription = () => {
             </Button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="name">Subscription Name</Label>
-              <Input
-                id="name"
-                placeholder="Netflix Premium"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Subscription Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Netflix Premium" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="cost">Cost</Label>
-              <Input
-                id="cost"
-                type="number"
-                placeholder="499"
-                value={formData.cost}
-                onChange={(e) => setFormData({ ...formData, cost: e.target.value })}
-                required
+              <FormField
+                control={form.control}
+                name="cost"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Cost</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="499" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="billing">Billing Cycle</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={formData.billingCycle === 'Monthly' ? 'default' : 'outline'}
-                  className="flex-1"
-                  onClick={() => setFormData({ ...formData, billingCycle: 'Monthly' })}
-                >
-                  Monthly
-                </Button>
-                <Button
-                  type="button"
-                  variant={formData.billingCycle === 'Yearly' ? 'default' : 'outline'}
-                  className="flex-1"
-                  onClick={() => setFormData({ ...formData, billingCycle: 'Yearly' })}
-                >
-                  Yearly
-                </Button>
+              <FormField
+                control={form.control}
+                name="billingCycle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Billing Cycle</FormLabel>
+                    <FormControl>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant={field.value === 'Monthly' ? 'default' : 'outline'}
+                          className="flex-1"
+                          onClick={() => field.onChange('Monthly')}
+                        >
+                          Monthly
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={field.value === 'Yearly' ? 'default' : 'outline'}
+                          className="flex-1"
+                          onClick={() => field.onChange('Yearly')}
+                        >
+                          Yearly
+                        </Button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="renewalDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Next Renewal Date</FormLabel>
+                    <FormControl>
+                      <Input type="date" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="OTT">OTT / Streaming</SelectItem>
+                        <SelectItem value="Fitness">Fitness</SelectItem>
+                        <SelectItem value="Software">Software / SaaS</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="alertsEnabled"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
+                      <div>
+                        <FormLabel className="text-base">Enable Renewal Alerts</FormLabel>
+                        <p className="text-sm text-muted-foreground">Get notified before renewal</p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="bg-accent p-4 rounded-lg">
+                <p className="text-sm text-accent-foreground">
+                  We'll remind you before it renews
+                </p>
               </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="renewal">Next Renewal Date</Label>
-              <Input
-                id="renewal"
-                type="date"
-                value={formData.renewalDate}
-                onChange={(e) => setFormData({ ...formData, renewalDate: e.target.value })}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select
-                value={formData.category}
-                onValueChange={(value: any) => setFormData({ ...formData, category: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="OTT">OTT / Streaming</SelectItem>
-                  <SelectItem value="Fitness">Fitness</SelectItem>
-                  <SelectItem value="Software">Software / SaaS</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-              <div>
-                <Label htmlFor="alerts" className="text-base">Enable Renewal Alerts</Label>
-                <p className="text-sm text-muted-foreground">Get notified before renewal</p>
-              </div>
-              <Switch
-                id="alerts"
-                checked={formData.alertsEnabled}
-                onCheckedChange={(checked) => setFormData({ ...formData, alertsEnabled: checked })}
-              />
-            </div>
-
-            <div className="bg-accent p-4 rounded-lg">
-              <p className="text-sm text-accent-foreground">
-                We'll remind you before it renews
-              </p>
-            </div>
-
-            <Button type="submit" className="w-full" size="lg">
-              Save Subscription
-            </Button>
-          </form>
+              <Button type="submit" className="w-full" size="lg">
+                Save Subscription
+              </Button>
+            </form>
+          </Form>
         </Card>
       </main>
     </div>
