@@ -1,17 +1,25 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Logo } from '@/components/Logo';
 import { SubscriptionCard } from '@/components/SubscriptionCard';
-import { mockSubscriptions } from '@/lib/mockData';
-import { Plus, Search, Settings, TrendingUp } from 'lucide-react';
+import { useSubscriptions } from '@/hooks/useSubscriptions';
+import { useAuth } from '@/contexts/AuthContext';
+import { Plus, Search, Settings, TrendingUp, LogOut } from 'lucide-react';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [subscriptions] = useState(mockSubscriptions);
+  const { user, signOut } = useAuth();
+  const { subscriptions, isLoading } = useSubscriptions();
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/login');
+    }
+  }, [user, navigate]);
 
   const totalMonthly = subscriptions.reduce((sum, sub) => {
     return sum + (sub.billingCycle === 'Monthly' ? sub.cost : sub.cost / 12);
@@ -32,18 +40,35 @@ const Dashboard = () => {
     sub.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-muted flex items-center justify-center">
+        <p className="text-muted-foreground">Loading...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-muted">
       <header className="bg-card border-b border-border px-4 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Logo />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/settings')}
-          >
-            <Settings className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/settings')}
+            >
+              <Settings className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={signOut}
+            >
+              <LogOut className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
