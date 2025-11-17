@@ -1,59 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/Logo';
-import { useUserSettings } from '@/hooks/useUserSettings';
-import { useAuth } from '@/contexts/AuthContext';
+import { mockUserSettings } from '@/lib/mockData';
 import { ArrowLeft, User, Bell } from 'lucide-react';
 
 const Settings = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const { settings, profile, isLoading, updateSettings } = useUserSettings();
-  const [formData, setFormData] = useState({
-    currency: '₹' as '₹' | '$' | '€',
-    theme: 'light' as 'light' | 'dark',
-    billingAlertsEnabled: true,
-    promotionalOffersEnabled: false,
-  });
+  const [settings, setSettings] = useState(mockUserSettings);
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login');
-    }
-  }, [user, navigate]);
-
-  useEffect(() => {
-    if (settings) {
-      setFormData({
-        currency: settings.currency as '₹' | '$' | '€',
-        theme: settings.theme as 'light' | 'dark',
-        billingAlertsEnabled: settings.billing_alerts_enabled,
-        promotionalOffersEnabled: settings.promotional_offers_enabled,
-      });
-    }
-  }, [settings]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      await updateSettings.mutateAsync(formData);
-      navigate('/dashboard');
-    } catch (error) {
-      // Error is handled by the mutation
-    }
+    navigate('/success', { state: { message: "Settings saved successfully!" } });
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-muted flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-muted">
@@ -83,8 +46,8 @@ const Settings = () => {
                   <User className="w-6 h-6 text-primary-foreground" />
                 </div>
                 <div className="flex-1">
-                  <p className="font-semibold">{profile?.name || 'User'}</p>
-                  <p className="text-sm text-muted-foreground">{profile?.email || user?.email}</p>
+                  <p className="font-semibold">{settings.name}</p>
+                  <p className="text-sm text-muted-foreground">{settings.email}</p>
                 </div>
               </div>
             </div>
@@ -97,9 +60,9 @@ const Settings = () => {
                   <Button
                     key={currency}
                     type="button"
-                    variant={formData.currency === currency ? 'default' : 'outline'}
+                    variant={settings.currency === currency ? 'default' : 'outline'}
                     className="flex-1"
-                    onClick={() => setFormData({ ...formData, currency: currency as any })}
+                    onClick={() => setSettings({ ...settings, currency: currency as any })}
                   >
                     {currency}
                   </Button>
@@ -117,8 +80,8 @@ const Settings = () => {
                 </div>
                 <Switch
                   id="billing-alerts"
-                  checked={formData.billingAlertsEnabled}
-                  onCheckedChange={(checked) => setFormData({ ...formData, billingAlertsEnabled: checked })}
+                  checked={settings.billingAlertsEnabled}
+                  onCheckedChange={(checked) => setSettings({ ...settings, billingAlertsEnabled: checked })}
                 />
               </div>
 
@@ -129,8 +92,8 @@ const Settings = () => {
                 </div>
                 <Switch
                   id="promo-offers"
-                  checked={formData.promotionalOffersEnabled}
-                  onCheckedChange={(checked) => setFormData({ ...formData, promotionalOffersEnabled: checked })}
+                  checked={settings.promotionalOffersEnabled}
+                  onCheckedChange={(checked) => setSettings({ ...settings, promotionalOffersEnabled: checked })}
                 />
               </div>
 
@@ -151,17 +114,17 @@ const Settings = () => {
               <div className="flex gap-2">
                 <Button
                   type="button"
-                  variant={formData.theme === 'light' ? 'default' : 'outline'}
+                  variant={settings.theme === 'light' ? 'default' : 'outline'}
                   className="flex-1"
-                  onClick={() => setFormData({ ...formData, theme: 'light' })}
+                  onClick={() => setSettings({ ...settings, theme: 'light' })}
                 >
                   Light Mode
                 </Button>
                 <Button
                   type="button"
-                  variant={formData.theme === 'dark' ? 'default' : 'outline'}
+                  variant={settings.theme === 'dark' ? 'default' : 'outline'}
                   className="flex-1"
-                  onClick={() => setFormData({ ...formData, theme: 'dark' })}
+                  onClick={() => setSettings({ ...settings, theme: 'dark' })}
                 >
                   Dark Mode
                 </Button>

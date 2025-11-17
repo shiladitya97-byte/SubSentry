@@ -1,37 +1,22 @@
 import { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/Logo';
 import { Chrome } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const { signInWithGoogle, user } = useAuth();
-  const { toast } = useToast();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
-  useEffect(() => {
-    if (user) {
-      navigate('/dashboard');
-    }
-  }, [user, navigate]);
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    navigate('/dashboard');
+  };
 
-  const handleGoogleLogin = async () => {
-    try {
-      setLoading(true);
-      await signInWithGoogle();
-    } catch (error: any) {
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to sign in with Google',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleGoogleLogin = () => {
+    navigate('/dashboard');
   };
 
   return (
@@ -45,16 +30,61 @@ const Login = () => {
 
           <Button
             variant="outline"
-            className="w-full gap-2"
+            className="w-full mb-4 gap-2"
             onClick={handleGoogleLogin}
-            disabled={loading}
           >
             <Chrome className="w-5 h-5" />
-            {loading ? 'Signing in...' : 'Continue with Google'}
+            Sign in with Google
           </Button>
 
+          <Button
+            className="w-full mb-6"
+            onClick={handleGoogleLogin}
+          >
+            Sign Up with Email
+          </Button>
+
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-border"></div>
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-card px-2 text-muted-foreground">Or sign in with email</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <Input
+                type="email"
+                placeholder="Email Address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <Input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <Button type="submit" className="w-full">
+              Log In
+            </Button>
+          </form>
+
           <div className="mt-6 text-center text-sm text-muted-foreground">
-            Click above to sign in or create an account with your Google account
+            Don't have an account?{' '}
+            <button
+              onClick={handleGoogleLogin}
+              className="text-primary hover:underline font-medium"
+            >
+              Get Started
+            </button>
           </div>
         </div>
       </div>
