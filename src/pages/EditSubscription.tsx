@@ -153,7 +153,7 @@ const EditSubscription = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(`/subscription/${id}`)}
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
