@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,6 +9,8 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Logo } from '@/components/Logo';
 import { ArrowLeft, Info } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -27,6 +30,8 @@ import {
 
 const AddSubscription = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
   
   const form = useForm<SubscriptionFormData>({
     resolver: zodResolver(subscriptionSchema),
@@ -40,9 +45,48 @@ const AddSubscription = () => {
     },
   });
 
-  const onSubmit = (data: SubscriptionFormData) => {
-    console.log('Form validated:', data);
-    navigate('/success', { state: { message: "Subscription added successfully!" } });
+  const onSubmit = async (data: SubscriptionFormData) => {
+    setIsLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to add a subscription",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.from('subscriptions').insert({
+        user_id: user.id,
+        name: data.name,
+        category: data.category,
+        cost: parseFloat(data.cost),
+        billing_cycle: data.billingCycle,
+        next_renewal_date: data.renewalDate,
+        alerts_enabled: data.alertsEnabled,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Subscription added successfully",
+      });
+      
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error adding subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add subscription. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -196,8 +240,8 @@ const AddSubscription = () => {
                 </p>
               </div>
 
-              <Button type="submit" className="w-full" size="lg">
-                Save Subscription
+              <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
+                {isLoading ? 'Saving...' : 'Save Subscription'}
               </Button>
             </form>
           </Form>
