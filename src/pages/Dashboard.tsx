@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Logo } from '@/components/Logo';
 import { SubscriptionCard } from '@/components/SubscriptionCard';
+import { ChatAssistant } from '@/components/ChatAssistant';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Search, Settings, TrendingUp, Loader2 } from 'lucide-react';
@@ -171,6 +172,8 @@ const Dashboard = () => {
           </>
         )}
       </main>
+      
+      <ChatAssistant />
     </div>
   );
 };
