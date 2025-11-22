@@ -11,7 +11,6 @@ import { ArrowLeft, Info, Loader2 } from 'lucide-react';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
@@ -166,18 +165,16 @@ const EditSubscription = () => {
         <Card className="p-6">
           <div className="flex items-center gap-2 mb-6">
             <h1 className="text-2xl font-bold text-card-foreground">Edit Subscription</h1>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" className="ml-auto">
-                    <Info className="w-5 h-5 text-primary" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">Edit your subscription details including name, cost, billing cycle, and renewal date. Toggle alerts to get notified before renewals.</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="ml-auto">
+                  <Info className="w-5 h-5 text-primary" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="max-w-xs">Edit your subscription details including name, cost, billing cycle, and renewal date. Toggle alerts to get notified before renewals.</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           <Form {...form}>
