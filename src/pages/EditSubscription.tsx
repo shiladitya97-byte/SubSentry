@@ -8,6 +8,12 @@ import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Logo } from '@/components/Logo';
 import { ArrowLeft, Info, Loader2 } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -148,7 +154,7 @@ const EditSubscription = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(`/subscription/${id}`)}
+            onClick={() => navigate('/dashboard')}
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -160,9 +166,18 @@ const EditSubscription = () => {
         <Card className="p-6">
           <div className="flex items-center gap-2 mb-6">
             <h1 className="text-2xl font-bold text-card-foreground">Edit Subscription</h1>
-            <Button variant="ghost" size="icon" className="ml-auto">
-              <Info className="w-5 h-5 text-primary" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="icon" className="ml-auto">
+                    <Info className="w-5 h-5 text-primary" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="max-w-xs">Edit your subscription details including name, cost, billing cycle, and renewal date. Toggle alerts to get notified before renewals.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
 
           <Form {...form}>
