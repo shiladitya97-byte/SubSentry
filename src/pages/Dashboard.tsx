@@ -8,7 +8,7 @@ import { SubscriptionCard } from '@/components/SubscriptionCard';
 import { ChatAssistant } from '@/components/ChatAssistant';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Settings, TrendingUp, Loader2 } from 'lucide-react';
+import { Plus, Search, Settings, TrendingUp, Loader2, Bell } from 'lucide-react';
 import type { Subscription } from '@/types/subscription';
 
 const Dashboard = () => {
@@ -88,13 +88,22 @@ const Dashboard = () => {
       <header className="bg-card border-b border-border px-4 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <Logo />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate('/settings')}
-          >
-            <Settings className="w-5 h-5" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/alert-settings')}
+            >
+              <Bell className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/settings')}
+            >
+              <Settings className="w-5 h-5" />
+            </Button>
+          </div>
         </div>
       </header>
 
