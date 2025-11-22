@@ -1,17 +1,67 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Logo } from '@/components/Logo';
 import { SubscriptionCard } from '@/components/SubscriptionCard';
-import { mockSubscriptions } from '@/lib/mockData';
-import { Plus, Search, Settings, TrendingUp } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Search, Settings, TrendingUp, Loader2 } from 'lucide-react';
+import type { Subscription } from '@/types/subscription';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [subscriptions] = useState(mockSubscriptions);
+  const { toast } = useToast();
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadSubscriptions();
+  }, []);
+
+  const loadSubscriptions = async () => {
+    try {
+      setIsLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('next_renewal_date', { ascending: true });
+
+      if (error) throw error;
+
+      const formattedData: Subscription[] = (data || []).map(sub => ({
+        id: sub.id,
+        name: sub.name,
+        category: sub.category as 'OTT' | 'Fitness' | 'Software' | 'Other',
+        cost: Number(sub.cost),
+        billingCycle: sub.billing_cycle as 'Monthly' | 'Yearly',
+        nextRenewalDate: sub.next_renewal_date,
+        alertsEnabled: sub.alerts_enabled,
+        logo: sub.logo_url,
+      }));
+
+      setSubscriptions(formattedData);
+    } catch (error) {
+      console.error('Error loading subscriptions:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load subscriptions",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const totalMonthly = subscriptions.reduce((sum, sub) => {
     return sum + (sub.billingCycle === 'Monthly' ? sub.cost : sub.cost / 12);
@@ -48,6 +98,12 @@ const Dashboard = () => {
       </header>
 
       <main className="max-w-6xl mx-auto p-4 space-y-6">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <>
         <Card className="bg-primary text-primary-foreground p-6">
           <div className="flex items-start justify-between mb-4">
             <div>
@@ -112,6 +168,8 @@ const Dashboard = () => {
             ))}
           </div>
         </div>
+          </>
+        )}
       </main>
     </div>
   );
