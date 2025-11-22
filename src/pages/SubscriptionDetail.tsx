@@ -7,8 +7,18 @@ import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/Logo';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Video, Settings, Calendar, RefreshCw, Info, Loader2, Dumbbell, Code, Package } from 'lucide-react';
+import { ArrowLeft, Video, Settings, Calendar, RefreshCw, Info, Loader2, Dumbbell, Code, Package, AlertTriangle } from 'lucide-react';
 import type { Subscription } from '@/types/subscription';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 const categoryIcons = {
   OTT: Video,
@@ -31,6 +41,8 @@ const SubscriptionDetail = () => {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
   const [alertsEnabled, setAlertsEnabled] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadSubscription();
@@ -110,28 +122,29 @@ const SubscriptionDetail = () => {
   const handleDelete = async () => {
     if (!subscription) return;
     
-    if (window.confirm('Are you sure you want to delete this subscription?')) {
-      try {
-        const { error } = await supabase
-          .from('subscriptions')
-          .delete()
-          .eq('id', subscription.id);
+    try {
+      setIsDeleting(true);
+      const { error } = await supabase
+        .from('subscriptions')
+        .delete()
+        .eq('id', subscription.id);
 
-        if (error) throw error;
+      if (error) throw error;
 
-        toast({
-          title: "Success",
-          description: "Subscription deleted successfully",
-        });
-        navigate('/dashboard');
-      } catch (error) {
-        console.error('Error deleting subscription:', error);
-        toast({
-          title: "Error",
-          description: "Failed to delete subscription",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Success",
+        description: "Subscription deleted successfully",
+      });
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error deleting subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete subscription",
+        variant: "destructive",
+      });
+      setIsDeleting(false);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -289,13 +302,50 @@ const SubscriptionDetail = () => {
             <Button
               variant="outline"
               className="flex-1 text-destructive border-destructive hover:bg-destructive hover:text-destructive-foreground"
-              onClick={handleDelete}
+              onClick={() => setShowDeleteDialog(true)}
             >
               Delete Subscription
             </Button>
           </div>
         </Card>
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="animate-scale-in">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="bg-destructive/10 p-3 rounded-full">
+                <AlertTriangle className="w-6 h-6 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-xl">Delete Subscription?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-base">
+              Are you sure you want to delete <span className="font-semibold text-foreground">{subscription?.name}</span>? 
+              This action cannot be undone and you'll lose all tracking history for this subscription.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel disabled={isDeleting} className="sm:flex-1">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90 sm:flex-1"
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Subscription'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
