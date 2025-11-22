@@ -7,10 +7,12 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AddSubscription from "./pages/AddSubscription";
+import EditSubscription from "./pages/EditSubscription";
 import SubscriptionDetail from "./pages/SubscriptionDetail";
 import AlertSettings from "./pages/AlertSettings";
 import Settings from "./pages/Settings";
 import Success from "./pages/Success";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,10 +28,12 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/add-subscription" element={<ProtectedRoute><AddSubscription /></ProtectedRoute>} />
+          <Route path="/edit-subscription/:id" element={<ProtectedRoute><EditSubscription /></ProtectedRoute>} />
           <Route path="/subscription/:id" element={<ProtectedRoute><SubscriptionDetail /></ProtectedRoute>} />
           <Route path="/alert-settings" element={<ProtectedRoute><AlertSettings /></ProtectedRoute>} />
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/success" element={<ProtectedRoute><Success /></ProtectedRoute>} />
+          <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
