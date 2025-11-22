@@ -1,14 +1,13 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Logo } from '@/components/Logo';
-import { ArrowLeft, Info } from 'lucide-react';
+import { ArrowLeft, Info, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -28,10 +27,12 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-const AddSubscription = () => {
+const EditSubscription = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { id } = useParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(true);
   
   const form = useForm<SubscriptionFormData>({
     resolver: zodResolver(subscriptionSchema),
@@ -45,46 +46,100 @@ const AddSubscription = () => {
     },
   });
 
-  const onSubmit = async (data: SubscriptionFormData) => {
-    setIsLoading(true);
+  useEffect(() => {
+    loadSubscription();
+  }, [id]);
+
+  const loadSubscription = async () => {
     try {
+      setIsFetching(true);
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
-        toast({
-          title: "Error",
-          description: "You must be logged in to add a subscription",
-          variant: "destructive",
-        });
+        navigate('/login');
         return;
       }
 
-      const { error } = await supabase.from('subscriptions').insert({
-        user_id: user.id,
-        name: data.name,
-        category: data.category,
-        cost: parseFloat(data.cost),
-        billing_cycle: data.billingCycle,
-        next_renewal_date: data.renewalDate,
-        alerts_enabled: data.alertsEnabled,
-      });
+      const { data, error } = await supabase
+        .from('subscriptions')
+        .select('*')
+        .eq('id', id)
+        .eq('user_id', user.id)
+        .maybeSingle();
 
       if (error) throw error;
 
-      navigate('/success', { 
-        state: { message: "Your subscription has been saved successfully!" } 
-      });
+      if (data) {
+        form.reset({
+          name: data.name,
+          category: data.category as 'OTT' | 'Fitness' | 'Software' | 'Other',
+          cost: data.cost.toString(),
+          billingCycle: data.billing_cycle as 'Monthly' | 'Yearly',
+          renewalDate: data.next_renewal_date,
+          alertsEnabled: data.alerts_enabled ?? true,
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Subscription not found",
+          variant: "destructive",
+        });
+        navigate('/dashboard');
+      }
     } catch (error) {
-      console.error('Error adding subscription:', error);
+      console.error('Error loading subscription:', error);
       toast({
         title: "Error",
-        description: "Failed to add subscription. Please try again.",
+        description: "Failed to load subscription",
+        variant: "destructive",
+      });
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  const onSubmit = async (data: SubscriptionFormData) => {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({
+          name: data.name,
+          category: data.category,
+          cost: parseFloat(data.cost),
+          billing_cycle: data.billingCycle,
+          next_renewal_date: data.renewalDate,
+          alerts_enabled: data.alertsEnabled,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success!",
+        description: "Subscription updated successfully",
+      });
+      
+      navigate(`/subscription/${id}`);
+    } catch (error) {
+      console.error('Error updating subscription:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update subscription. Please try again.",
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isFetching) {
+    return (
+      <div className="min-h-screen bg-muted flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-muted">
@@ -93,7 +148,7 @@ const AddSubscription = () => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate(`/subscription/${id}`)}
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
@@ -104,7 +159,7 @@ const AddSubscription = () => {
       <main className="max-w-2xl mx-auto p-4">
         <Card className="p-6">
           <div className="flex items-center gap-2 mb-6">
-            <h1 className="text-2xl font-bold text-card-foreground">Add New Subscription</h1>
+            <h1 className="text-2xl font-bold text-card-foreground">Edit Subscription</h1>
             <Button variant="ghost" size="icon" className="ml-auto">
               <Info className="w-5 h-5 text-primary" />
             </Button>
@@ -231,14 +286,8 @@ const AddSubscription = () => {
                 )}
               />
 
-              <div className="bg-accent p-4 rounded-lg">
-                <p className="text-sm text-accent-foreground">
-                  We'll remind you before it renews
-                </p>
-              </div>
-
               <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-                {isLoading ? 'Saving...' : 'Save Subscription'}
+                {isLoading ? 'Updating...' : 'Update Subscription'}
               </Button>
             </form>
           </Form>
@@ -248,4 +297,4 @@ const AddSubscription = () => {
   );
 };
 
-export default AddSubscription;
+export default EditSubscription;
