@@ -1,40 +1,103 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/Logo';
-import { mockAlertSettings } from '@/lib/mockData';
-import { ArrowLeft, Bell } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { alertSettingsSchema, AlertSettingsFormData } from '@/lib/validationSchemas';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft, Mail, MessageSquare, Bell, Loader2 } from 'lucide-react';
 
 const AlertSettings = () => {
   const navigate = useNavigate();
-  
-  const form = useForm<AlertSettingsFormData>({
-    resolver: zodResolver(alertSettingsSchema),
-    defaultValues: mockAlertSettings,
-  });
+  const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [daysBeforeAlert, setDaysBeforeAlert] = useState<number>(3);
+  const [emailEnabled, setEmailEnabled] = useState(true);
+  const [smsEnabled, setSmsEnabled] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(true);
 
-  const onSubmit = (data: AlertSettingsFormData) => {
-    console.log('Alert settings validated:', data);
-    navigate('/success', { state: { message: "Alert preferences saved!" } });
+  useEffect(() => {
+    loadAlertSettings();
+  }, []);
+
+  const loadAlertSettings = async () => {
+    try {
+      setIsLoading(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('alert_settings')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setDaysBeforeAlert(data.days_before_alert ?? 3);
+        setEmailEnabled(data.email_enabled ?? true);
+        setSmsEnabled(data.sms_enabled ?? false);
+        setPushEnabled(data.push_enabled ?? true);
+      }
+    } catch (error) {
+      console.error('Error loading alert settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load alert settings",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('alert_settings')
+        .update({
+          days_before_alert: daysBeforeAlert,
+          email_enabled: emailEnabled,
+          sms_enabled: smsEnabled,
+          push_enabled: pushEnabled,
+        })
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Alert preferences saved successfully",
+      });
+      
+      navigate('/dashboard');
+    } catch (error) {
+      console.error('Error saving alert settings:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save alert settings",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -53,119 +116,119 @@ const AlertSettings = () => {
       </header>
 
       <main className="max-w-2xl mx-auto p-4">
-        <Card className="p-6">
-          <h1 className="text-2xl font-bold text-card-foreground mb-2">Notification Preferences</h1>
-          <p className="text-muted-foreground mb-6">Stay on top of all subscriptions</p>
-
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <Card className="p-6">
+            <div className="space-y-8">
+              {/* Alert Timing Section */}
               <div className="space-y-4">
-                <h2 className="text-sm font-semibold text-muted-foreground">Renewal Alerts</h2>
-                
-                <FormField
-                  control={form.control}
-                  name="daysBeforeAlert"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Alert Timing</FormLabel>
-                      <Select
-                        onValueChange={(value) => field.onChange(parseInt(value))}
-                        value={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">1 Day Before</SelectItem>
-                          <SelectItem value="3">3 Days Before</SelectItem>
-                          <SelectItem value="7">7 Days Before</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                <div>
+                  <h2 className="text-lg font-semibold text-card-foreground mb-1">Alert Timing</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Choose when you want to be notified before renewals
+                  </p>
+                </div>
+
+                <RadioGroup value={daysBeforeAlert.toString()} onValueChange={(value) => setDaysBeforeAlert(parseInt(value))}>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="1" id="1day" />
+                    <Label htmlFor="1day" className="font-normal cursor-pointer">1 day before</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="3" id="3days" />
+                    <Label htmlFor="3days" className="font-normal cursor-pointer">3 days before</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="7" id="7days" />
+                    <Label htmlFor="7days" className="font-normal cursor-pointer">7 days before</Label>
+                  </div>
+                </RadioGroup>
+              </div>
+
+              {/* Notification Channels Section */}
+              <div className="space-y-4">
+                <div>
+                  <h2 className="text-lg font-semibold text-card-foreground mb-1">Notification Channels</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Select how you want to receive renewal alerts
+                  </p>
+                </div>
 
                 <div className="space-y-3">
-                  <FormLabel>Notification Channels</FormLabel>
-                  
-                  <FormField
-                    control={form.control}
-                    name="emailEnabled"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Email Notifications */}
+                  <div className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-blue-100 dark:bg-blue-900/40 p-2 rounded-lg">
+                        <Mail className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-card-foreground">Email Notifications</p>
+                        <p className="text-sm text-muted-foreground">Get alerts via email</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={emailEnabled}
+                      onCheckedChange={setEmailEnabled}
+                    />
+                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="smsEnabled"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                          <FormLabel>SMS</FormLabel>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* SMS Notifications */}
+                  <div className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-green-100 dark:bg-green-900/40 p-2 rounded-lg">
+                        <MessageSquare className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-card-foreground">SMS Notifications</p>
+                        <p className="text-sm text-muted-foreground">Get alerts via text message</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={smsEnabled}
+                      onCheckedChange={setSmsEnabled}
+                    />
+                  </div>
 
-                  <FormField
-                    control={form.control}
-                    name="pushEnabled"
-                    render={({ field }) => (
-                      <FormItem>
-                        <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                          <FormLabel>Push Notifications</FormLabel>
-                          <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                        </div>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Push Notifications */}
+                  <div className="flex items-center justify-between p-4 bg-purple-50 dark:bg-purple-950/20 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-purple-100 dark:bg-purple-900/40 p-2 rounded-lg">
+                        <Bell className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-card-foreground">Push Notifications</p>
+                        <p className="text-sm text-muted-foreground">Get alerts on your device</p>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={pushEnabled}
+                      onCheckedChange={setPushEnabled}
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-accent p-4 rounded-lg space-y-2">
-                <div className="flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-accent-foreground" />
-                  <p className="text-sm font-medium text-accent-foreground">Alert Preview</p>
-                </div>
-                <p className="text-sm text-accent-foreground">
-                  "Your Netflix subscription renews in {form.watch('daysBeforeAlert')} day(s). Click here to review."
-                </p>
-              </div>
-
-              <Button type="submit" className="w-full" size="lg">
-                Save Preferences
+              <Button 
+                onClick={handleSave} 
+                className="w-full" 
+                size="lg"
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Preferences'
+                )}
               </Button>
-            </form>
-          </Form>
-        </Card>
+            </div>
+          </Card>
+        )}
       </main>
     </div>
   );
