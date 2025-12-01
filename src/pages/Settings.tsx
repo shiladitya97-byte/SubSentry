@@ -72,6 +72,27 @@ const Settings = () => {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Logged out successfully",
+      });
+      
+      navigate('/login');
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to log out",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="min-h-screen bg-muted">
       <header className="bg-card border-b border-border px-4 py-4">
@@ -204,7 +225,12 @@ const Settings = () => {
                   )}
                 />
 
-                <Button type="button" variant="ghost" className="w-full justify-start text-destructive">
+                <Button 
+                  type="button" 
+                  variant="ghost" 
+                  className="w-full justify-start text-destructive hover:bg-destructive/10"
+                  onClick={handleLogout}
+                >
                   Log out
                 </Button>
               </div>
