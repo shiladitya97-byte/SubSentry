@@ -29,6 +29,15 @@ export const userSettingsSchema = z.object({
   promotionalOffersEnabled: z.boolean()
 });
 
+export const passwordChangeSchema = z.object({
+  currentPassword: z.string().min(6, 'Password must be at least 6 characters'),
+  newPassword: z.string().min(6, 'Password must be at least 6 characters').max(128, 'Password too long'),
+  confirmPassword: z.string()
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"]
+});
+
 export const alertSettingsSchema = z.object({
   daysBeforeAlert: z.number().int().min(1, 'Must be at least 1 day').max(30, 'Cannot exceed 30 days'),
   emailEnabled: z.boolean(),
@@ -45,3 +54,4 @@ export type SubscriptionFormData = z.infer<typeof subscriptionSchema>;
 export type UserSettingsFormData = z.infer<typeof userSettingsSchema>;
 export type AlertSettingsFormData = z.infer<typeof alertSettingsSchema>;
 export type LoginFormData = z.infer<typeof loginSchema>;
+export type PasswordChangeFormData = z.infer<typeof passwordChangeSchema>;

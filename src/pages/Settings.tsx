@@ -8,8 +8,11 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/Logo';
 import { mockUserSettings } from '@/lib/mockData';
-import { ArrowLeft, User } from 'lucide-react';
-import { userSettingsSchema, UserSettingsFormData } from '@/lib/validationSchemas';
+import { ArrowLeft, User, Lock, Loader2 } from 'lucide-react';
+import { userSettingsSchema, UserSettingsFormData, passwordChangeSchema, PasswordChangeFormData } from '@/lib/validationSchemas';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import { useState } from 'react';
 import {
   Form,
   FormControl,
@@ -21,15 +24,52 @@ import {
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   
   const form = useForm<UserSettingsFormData>({
     resolver: zodResolver(userSettingsSchema),
     defaultValues: mockUserSettings,
   });
 
+  const passwordForm = useForm<PasswordChangeFormData>({
+    resolver: zodResolver(passwordChangeSchema),
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    }
+  });
+
   const onSubmit = (data: UserSettingsFormData) => {
     console.log('Settings validated:', data);
     navigate('/success', { state: { message: "Settings saved successfully!" } });
+  };
+
+  const onPasswordChange = async (data: PasswordChangeFormData) => {
+    setIsChangingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: data.newPassword
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Password changed successfully",
+      });
+      
+      passwordForm.reset();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to change password",
+        variant: "destructive",
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   return (
@@ -171,6 +211,73 @@ const Settings = () => {
 
               <Button type="submit" className="w-full" size="lg">
                 Save Changes
+              </Button>
+            </form>
+          </Form>
+        </Card>
+
+        {/* Password Change Section */}
+        <Card className="p-6 mt-4">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-primary/10 p-2 rounded-lg">
+              <Lock className="w-5 h-5 text-primary" />
+            </div>
+            <h2 className="text-xl font-bold text-card-foreground">Change Password</h2>
+          </div>
+
+          <Form {...passwordForm}>
+            <form onSubmit={passwordForm.handleSubmit(onPasswordChange)} className="space-y-4">
+              <FormField
+                control={passwordForm.control}
+                name="currentPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Current Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Enter current password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={passwordForm.control}
+                name="newPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>New Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Enter new password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={passwordForm.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm New Password</FormLabel>
+                    <FormControl>
+                      <Input type="password" placeholder="Confirm new password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Button type="submit" className="w-full" size="lg" disabled={isChangingPassword}>
+                {isChangingPassword ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Changing Password...
+                  </>
+                ) : (
+                  'Change Password'
+                )}
               </Button>
             </form>
           </Form>
