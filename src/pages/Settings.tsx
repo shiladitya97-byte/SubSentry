@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Logo } from '@/components/Logo';
 import { mockUserSettings } from '@/lib/mockData';
 import { ArrowLeft, User } from 'lucide-react';
@@ -55,15 +56,39 @@ const Settings = () => {
               <div className="space-y-4">
                 <h2 className="text-sm font-semibold text-muted-foreground">Profile</h2>
                 
-                <div className="flex items-center gap-4 p-4 bg-muted rounded-lg">
+                <div className="flex items-center gap-4 p-4 bg-muted rounded-lg mb-4">
                   <div className="bg-primary rounded-full p-3">
                     <User className="w-6 h-6 text-primary-foreground" />
                   </div>
-                  <div className="flex-1">
-                    <p className="font-semibold">{form.watch('name')}</p>
-                    <p className="text-sm text-muted-foreground">{form.watch('email')}</p>
-                  </div>
                 </div>
+
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Name</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter your name" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" placeholder="Enter your email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               </div>
 
               <FormField
