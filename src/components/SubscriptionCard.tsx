@@ -25,9 +25,25 @@ export const SubscriptionCard = ({ subscription, onClick }: SubscriptionCardProp
   const Icon = categoryIcons[subscription.category];
   const colorClass = categoryColors[subscription.category];
 
-  const daysUntilRenewal = Math.ceil(
-    (new Date(subscription.nextRenewalDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-  );
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const renewalDate = new Date(subscription.nextRenewalDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  renewalDate.setHours(0, 0, 0, 0);
+  const daysUntilRenewal = Math.round((renewalDate.getTime() - today.getTime()) / msPerDay);
+
+  const renewalLabel =
+    daysUntilRenewal > 1
+      ? `Renews in ${daysUntilRenewal} days`
+      : daysUntilRenewal === 1
+      ? 'Renews tomorrow'
+      : daysUntilRenewal === 0
+      ? 'Renews today'
+      : daysUntilRenewal === -1
+      ? 'Renewal was yesterday'
+      : `Renewal overdue by ${Math.abs(daysUntilRenewal)} days`;
+
+  const isOverdue = daysUntilRenewal < 0;
 
   return (
     <Card
@@ -49,11 +65,9 @@ export const SubscriptionCard = ({ subscription, onClick }: SubscriptionCardProp
           <p className="text-xs text-muted-foreground">{subscription.billingCycle}</p>
         </div>
       </div>
-      {daysUntilRenewal <= 7 && (
-        <div className="mt-3 text-xs text-muted-foreground">
-          Renews in {daysUntilRenewal} {daysUntilRenewal === 1 ? 'day' : 'days'}
-        </div>
-      )}
+      <div className={`mt-3 text-xs ${isOverdue ? 'text-destructive' : 'text-muted-foreground'}`}>
+        {renewalLabel}
+      </div>
     </Card>
   );
 };
