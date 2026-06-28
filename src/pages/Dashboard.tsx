@@ -17,6 +17,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarPicker } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 import type { Subscription } from '@/types/subscription';
 
 const Dashboard = () => {
@@ -137,16 +140,23 @@ const Dashboard = () => {
             >
               <Bell className="w-5 h-5" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => {
-                document.getElementById('upcoming-renewals')?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              aria-label="View upcoming renewals"
-            >
-              <Calendar className="w-5 h-5" />
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Open calendar">
+                  <Calendar className="w-5 h-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-auto p-0">
+                <CalendarPicker
+                  mode="single"
+                  selected={new Date()}
+                  defaultMonth={new Date()}
+                  today={new Date()}
+                  initialFocus
+                  className={cn('p-3 pointer-events-auto')}
+                />
+              </PopoverContent>
+            </Popover>
             <Button
               variant="ghost"
               size="icon"
