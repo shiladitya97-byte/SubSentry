@@ -153,10 +153,24 @@ const Dashboard = () => {
                   defaultMonth={new Date()}
                   today={new Date()}
                   initialFocus
+                  modifiers={{
+                    renewal: subscriptions.map(s => new Date(s.nextRenewalDate)),
+                  }}
+                  modifiersClassNames={{
+                    renewal:
+                      'relative font-semibold text-primary after:content-[""] after:absolute after:bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:rounded-full after:bg-primary',
+                  }}
                   className={cn('p-3 pointer-events-auto')}
                 />
+                {subscriptions.length > 0 && (
+                  <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    Upcoming renewal
+                  </div>
+                )}
               </PopoverContent>
             </Popover>
+
             <Button
               variant="ghost"
               size="icon"
