@@ -97,13 +97,31 @@ const Dashboard = () => {
     })
     .sort((a, b) => new Date(a.nextRenewalDate).getTime() - new Date(b.nextRenewalDate).getTime());
 
-  const filteredSubscriptions = subscriptions.filter(sub => {
-    const matchesSearch =
-      sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = categoryFilter === 'All' || sub.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredSubscriptions = subscriptions
+    .filter(sub => {
+      const matchesSearch =
+        sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sub.category.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = categoryFilter === 'All' || sub.category === categoryFilter;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'Soonest Renewal':
+          return new Date(a.nextRenewalDate).getTime() - new Date(b.nextRenewalDate).getTime();
+        case 'Highest Monthly Cost': {
+          const monthlyA = a.billingCycle === 'Monthly' ? a.cost : a.cost / 12;
+          const monthlyB = b.billingCycle === 'Monthly' ? b.cost : b.cost / 12;
+          return monthlyB - monthlyA;
+        }
+        case 'Name (A-Z)':
+          return a.name.localeCompare(b.name);
+        case 'Name (Z-A)':
+          return b.name.localeCompare(a.name);
+        default:
+          return 0;
+      }
+    });
 
   return (
     <div className="min-h-screen bg-muted">
