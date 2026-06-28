@@ -25,7 +25,16 @@ const Dashboard = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
+  const [sortBy, setSortBy] = useState<string>('Soonest Renewal');
   const [isLoading, setIsLoading] = useState(true);
+
+  type SortOption = { label: string; value: string };
+  const sortOptions: SortOption[] = [
+    { label: 'Soonest Renewal', value: 'Soonest Renewal' },
+    { label: 'Highest Monthly Cost', value: 'Highest Monthly Cost' },
+    { label: 'Name (A-Z)', value: 'Name (A-Z)' },
+    { label: 'Name (Z-A)', value: 'Name (Z-A)' },
+  ];
 
   useEffect(() => {
     loadSubscriptions();
