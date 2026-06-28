@@ -8,7 +8,15 @@ import { SubscriptionCard } from '@/components/SubscriptionCard';
 import { ChatAssistant } from '@/components/ChatAssistant';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Settings, TrendingUp, Loader2, Bell } from 'lucide-react';
+import { Plus, Search, Settings, TrendingUp, Loader2, Bell, Calendar, Filter } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import type { Subscription } from '@/types/subscription';
 
 const Dashboard = () => {
@@ -16,6 +24,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -79,9 +88,13 @@ const Dashboard = () => {
     })
     .sort((a, b) => new Date(a.nextRenewalDate).getTime() - new Date(b.nextRenewalDate).getTime());
 
-  const filteredSubscriptions = subscriptions.filter(sub =>
-    sub.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredSubscriptions = subscriptions.filter(sub => {
+    const matchesSearch =
+      sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sub.category.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = categoryFilter === 'All' || sub.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="min-h-screen bg-muted">
@@ -93,8 +106,19 @@ const Dashboard = () => {
               variant="ghost"
               size="icon"
               onClick={() => navigate('/alert-settings')}
+              aria-label="Alert settings"
             >
               <Bell className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                document.getElementById('upcoming-renewals')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+              aria-label="View upcoming renewals"
+            >
+              <Calendar className="w-5 h-5" />
             </Button>
             <Button
               variant="ghost"
@@ -133,19 +157,38 @@ const Dashboard = () => {
               All tracked
             </div>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="Search & Filter"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 bg-card text-card-foreground border-0"
-            />
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search by name or category..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-card text-card-foreground border-0"
+              />
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" className="gap-2 bg-card text-card-foreground hover:bg-card/90">
+                  <Filter className="w-4 h-4" />
+                  {categoryFilter}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover">
+                <DropdownMenuLabel>Filter by category</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {['All', 'OTT', 'Fitness', 'Software', 'Other'].map(cat => (
+                  <DropdownMenuItem key={cat} onClick={() => setCategoryFilter(cat)}>
+                    {cat}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </Card>
 
         {upcomingRenewals.length > 0 && (
-          <div>
+          <div id="upcoming-renewals">
             <h3 className="text-sm font-medium text-muted-foreground mb-3 px-1">
               Renewals in upcoming days
             </h3>
