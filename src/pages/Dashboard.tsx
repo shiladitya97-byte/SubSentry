@@ -211,6 +211,24 @@ const Dashboard = () => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" className="gap-2 bg-card text-card-foreground hover:bg-card/90">
+                  <ArrowUpDown className="w-4 h-4" />
+                  Sort
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover">
+                <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {sortOptions.map(opt => (
+                  <DropdownMenuItem key={opt.value} onClick={() => setSortBy(opt.value)}>
+                    {opt.label}
+                    {sortBy === opt.value && <span className="ml-auto text-primary">✓</span>}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </Card>
 
