@@ -8,7 +8,7 @@ import { SubscriptionCard } from '@/components/SubscriptionCard';
 import { ChatAssistant } from '@/components/ChatAssistant';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Settings, TrendingUp, Loader2, Bell, Calendar, Filter } from 'lucide-react';
+import { Plus, Search, Settings, TrendingUp, Loader2, Bell, Calendar, Filter, ArrowUpDown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,7 +25,16 @@ const Dashboard = () => {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
+  const [sortBy, setSortBy] = useState<string>('Soonest Renewal');
   const [isLoading, setIsLoading] = useState(true);
+
+  type SortOption = { label: string; value: string };
+  const sortOptions: SortOption[] = [
+    { label: 'Soonest Renewal', value: 'Soonest Renewal' },
+    { label: 'Highest Monthly Cost', value: 'Highest Monthly Cost' },
+    { label: 'Name (A-Z)', value: 'Name (A-Z)' },
+    { label: 'Name (Z-A)', value: 'Name (Z-A)' },
+  ];
 
   useEffect(() => {
     loadSubscriptions();
@@ -88,13 +97,31 @@ const Dashboard = () => {
     })
     .sort((a, b) => new Date(a.nextRenewalDate).getTime() - new Date(b.nextRenewalDate).getTime());
 
-  const filteredSubscriptions = subscriptions.filter(sub => {
-    const matchesSearch =
-      sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      sub.category.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = categoryFilter === 'All' || sub.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredSubscriptions = subscriptions
+    .filter(sub => {
+      const matchesSearch =
+        sub.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        sub.category.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesCategory = categoryFilter === 'All' || sub.category === categoryFilter;
+      return matchesSearch && matchesCategory;
+    })
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'Soonest Renewal':
+          return new Date(a.nextRenewalDate).getTime() - new Date(b.nextRenewalDate).getTime();
+        case 'Highest Monthly Cost': {
+          const monthlyA = a.billingCycle === 'Monthly' ? a.cost : a.cost / 12;
+          const monthlyB = b.billingCycle === 'Monthly' ? b.cost : b.cost / 12;
+          return monthlyB - monthlyA;
+        }
+        case 'Name (A-Z)':
+          return a.name.localeCompare(b.name);
+        case 'Name (Z-A)':
+          return b.name.localeCompare(a.name);
+        default:
+          return 0;
+      }
+    });
 
   return (
     <div className="min-h-screen bg-muted">
@@ -180,6 +207,24 @@ const Dashboard = () => {
                 {['All', 'OTT', 'Fitness', 'Software', 'Other'].map(cat => (
                   <DropdownMenuItem key={cat} onClick={() => setCategoryFilter(cat)}>
                     {cat}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="secondary" className="gap-2 bg-card text-card-foreground hover:bg-card/90">
+                  <ArrowUpDown className="w-4 h-4" />
+                  Sort
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover">
+                <DropdownMenuLabel>Sort by</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {sortOptions.map(opt => (
+                  <DropdownMenuItem key={opt.value} onClick={() => setSortBy(opt.value)}>
+                    {opt.label}
+                    {sortBy === opt.value && <span className="ml-auto text-primary">✓</span>}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
