@@ -1,0 +1,1 @@
+CREATE POLICY "Users can delete their own alert settings" ON public.alert_settings FOR DELETE USING (auth.uid() = user_id);
