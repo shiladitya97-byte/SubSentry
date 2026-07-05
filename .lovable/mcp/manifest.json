@@ -1,0 +1,124 @@
+{
+  "version": 1,
+  "sdk_version": "0.20.0",
+  "path": "/functions/v1/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://yyxdjgximzellsdnjhbl.supabase.co/auth/v1",
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "subsentry-mcp",
+      "version": "0.1.0",
+      "title": "SubSentry MCP"
+    },
+    "tools": [
+      {
+        "name": "list_subscriptions",
+        "title": "List subscriptions",
+        "description": "List all subscriptions for the signed-in user, including name, cost, billing cycle, category and next renewal date.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "category": {
+              "type": "string",
+              "description": "Optional category filter (e.g. Entertainment, Software)."
+            }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "create_subscription",
+        "title": "Create subscription",
+        "description": "Create a new subscription for the signed-in user. Cost is in the user's currency; billing_cycle is 'monthly' or 'yearly'.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Service name, e.g. Netflix."
+            },
+            "cost": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Recurring cost per billing cycle."
+            },
+            "billing_cycle": {
+              "type": "string",
+              "enum": [
+                "monthly",
+                "yearly"
+              ],
+              "description": "How often the subscription renews."
+            },
+            "category": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Category, e.g. Entertainment."
+            },
+            "next_renewal_date": {
+              "type": "string",
+              "description": "Next renewal date in YYYY-MM-DD format."
+            },
+            "alerts_enabled": {
+              "type": "boolean",
+              "description": "Whether renewal alerts are on."
+            }
+          },
+          "required": [
+            "name",
+            "cost",
+            "billing_cycle",
+            "category",
+            "next_renewal_date"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "delete_subscription",
+        "title": "Delete subscription",
+        "description": "Permanently delete one of the signed-in user's subscriptions by id.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": true
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Subscription id to delete."
+            }
+          },
+          "required": [
+            "id"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState, useEffect } from 'react';
@@ -17,8 +17,19 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
+// Only accept same-origin relative paths as post-login redirect targets.
+function safeNext(raw: string | null): string | null {
+  if (!raw) return null;
+  if (!raw.startsWith('/') || raw.startsWith('//')) return null;
+  return raw;
+}
+
 const Login = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const nextPath = safeNext(searchParams.get('next'));
+  const postLoginPath = nextPath ?? '/dashboard';
+  const postLoginUrl = `${window.location.origin}${postLoginPath}`;
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -36,11 +47,11 @@ const Login = () => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
-        navigate('/dashboard', { replace: true });
+        navigate(postLoginPath, { replace: true });
       }
     };
     checkSession();
-  }, [navigate]);
+  }, [navigate, postLoginPath]);
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -51,7 +62,7 @@ const Login = () => {
           email: data.email,
           password: data.password,
           options: {
-            emailRedirectTo: `${window.location.origin}/dashboard`
+            emailRedirectTo: postLoginUrl,
           }
         });
 
@@ -79,7 +90,7 @@ const Login = () => {
           description: 'You have successfully logged in.',
         });
         
-        navigate('/dashboard');
+        navigate(postLoginPath);
       }
     } catch (error: any) {
       toast({
@@ -98,7 +109,7 @@ const Login = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`
+          redirectTo: postLoginUrl,
         }
       });
 
@@ -112,6 +123,7 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className="min-h-screen bg-muted flex items-center justify-center p-4">

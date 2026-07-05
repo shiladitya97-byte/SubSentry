@@ -13,6 +13,7 @@ import AlertSettings from "./pages/AlertSettings";
 import Settings from "./pages/Settings";
 import Success from "./pages/Success";
 import Analytics from "./pages/Analytics";
+import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/success" element={<ProtectedRoute><Success /></ProtectedRoute>} />
           <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+          <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
