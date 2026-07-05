@@ -13,6 +13,7 @@ import AlertSettings from "./pages/AlertSettings";
 import Settings from "./pages/Settings";
 import Success from "./pages/Success";
 import Analytics from "./pages/Analytics";
+import OAuthConsent from "./pages/OAuthConsent";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
