@@ -1,20 +1,6 @@
 import { Subscription } from '@/types/subscription';
 import { Card } from '@/components/ui/card';
-import { Video, Dumbbell, Code, Package } from 'lucide-react';
-
-const categoryIcons = {
-  OTT: Video,
-  Fitness: Dumbbell,
-  Software: Code,
-  Other: Package,
-};
-
-const categoryColors = {
-  OTT: 'bg-blue-100 text-blue-600',
-  Fitness: 'bg-green-100 text-green-600',
-  Software: 'bg-purple-100 text-purple-600',
-  Other: 'bg-gray-100 text-gray-600',
-};
+import { BrandLogo } from '@/components/BrandLogo';
 
 interface SubscriptionCardProps {
   subscription: Subscription;
@@ -22,8 +8,7 @@ interface SubscriptionCardProps {
 }
 
 export const SubscriptionCard = ({ subscription, onClick }: SubscriptionCardProps) => {
-  const Icon = categoryIcons[subscription.category];
-  const colorClass = categoryColors[subscription.category];
+
 
   const msPerDay = 1000 * 60 * 60 * 24;
   const renewalDate = new Date(subscription.nextRenewalDate);
@@ -52,9 +37,7 @@ export const SubscriptionCard = ({ subscription, onClick }: SubscriptionCardProp
     >
       <div className="flex items-start justify-between">
         <div className="flex items-start gap-3 flex-1">
-          <div className={`p-2 rounded-lg ${colorClass}`}>
-            <Icon className="w-5 h-5" />
-          </div>
+          <BrandLogo name={subscription.name} category={subscription.category} size="sm" />
           <div className="flex-1">
             <h3 className="font-semibold text-card-foreground">{subscription.name}</h3>
             <p className="text-sm text-muted-foreground">{subscription.category}</p>
