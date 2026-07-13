@@ -21,12 +21,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-const categoryIcons = {
-  OTT: Video,
-  Fitness: Dumbbell,
-  Software: Code,
-  Other: Package,
-};
 
 const categoryDescriptions = {
   OTT: 'Streaming service for movies and TV shows',
