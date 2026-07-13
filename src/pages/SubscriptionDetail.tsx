@@ -264,14 +264,12 @@ const SubscriptionDetail = () => {
           </div>
 
           {/* Alert Info Box */}
-          {daysUntilRenewal <= 7 && (
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 flex items-center gap-3">
-              <Info className="w-5 h-5 text-orange-500 flex-shrink-0" />
-              <p className="text-orange-700 font-medium">
-                Next renewal in {daysUntilRenewal} {daysUntilRenewal === 1 ? 'day' : 'days'}
-              </p>
-            </div>
-          )}
+          <div className={`rounded-lg p-4 flex items-center gap-3 ${isOverdue ? 'bg-destructive/10 border border-destructive/20' : 'bg-orange-50 border border-orange-200'}`}>
+            <Info className={`w-5 h-5 flex-shrink-0 ${isOverdue ? 'text-destructive' : 'text-orange-500'}`} />
+            <p className={`font-medium ${isOverdue ? 'text-destructive' : 'text-orange-700'}`}>
+              {renewalLabel}
+            </p>
+          </div>
 
           {/* Renewal Alerts */}
           <div className="border-t pt-6">
