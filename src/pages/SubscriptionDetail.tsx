@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Logo } from '@/components/Logo';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Video, Settings, Calendar, RefreshCw, Info, Loader2, Dumbbell, Code, Package, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Settings, Calendar, RefreshCw, Info, Loader2, AlertTriangle } from 'lucide-react';
+import { BrandLogo } from '@/components/BrandLogo';
 import type { Subscription } from '@/types/subscription';
 import {
   AlertDialog,
@@ -20,12 +21,6 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-const categoryIcons = {
-  OTT: Video,
-  Fitness: Dumbbell,
-  Software: Code,
-  Other: Package,
-};
 
 const categoryDescriptions = {
   OTT: 'Streaming service for movies and TV shows',
@@ -187,7 +182,6 @@ const SubscriptionDetail = () => {
 
   const isOverdue = daysUntilRenewal < 0;
 
-  const Icon = categoryIcons[subscription.category];
   const description = categoryDescriptions[subscription.category];
 
   // Calculate costs
@@ -223,9 +217,8 @@ const SubscriptionDetail = () => {
           {/* Header with icon, name, and cost */}
           <div className="flex items-start justify-between">
             <div className="flex items-start gap-4">
-              <div className="bg-primary/10 p-4 rounded-2xl">
-                <Icon className="w-8 h-8 text-primary" />
-              </div>
+              <BrandLogo name={subscription.name} category={subscription.category} size="lg" />
+
               <div>
                 <h1 className="text-2xl font-bold text-foreground mb-1">{subscription.name}</h1>
                 <p className="text-muted-foreground mb-1">{subscription.category}</p>
