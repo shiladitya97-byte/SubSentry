@@ -8,7 +8,8 @@ import { SubscriptionCard } from '@/components/SubscriptionCard';
 import { ChatAssistant } from '@/components/ChatAssistant';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Search, Settings, TrendingUp, Loader2, Bell, Calendar, Filter, ArrowUpDown } from 'lucide-react';
+import { Plus, Search, Settings, TrendingUp, Loader2, Bell, Calendar, Filter, ArrowUpDown, Download } from 'lucide-react';
+import { downloadSubscriptionsReport } from '@/lib/exportReport';
 import {
   DropdownMenu,
   DropdownMenuContent,
