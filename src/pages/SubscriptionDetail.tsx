@@ -182,7 +182,6 @@ const SubscriptionDetail = () => {
 
   const isOverdue = daysUntilRenewal < 0;
 
-  const Icon = categoryIcons[subscription.category];
   const description = categoryDescriptions[subscription.category];
 
   // Calculate costs
