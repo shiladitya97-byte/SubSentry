@@ -186,6 +186,17 @@ const Dashboard = () => {
             >
               <Settings className="w-5 h-5" />
             </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-2"
+              onClick={() => downloadSubscriptionsReport(subscriptions)}
+              disabled={subscriptions.length === 0}
+              aria-label="Download report"
+            >
+              <Download className="w-4 h-4" />
+              Report
+            </Button>
           </div>
         </div>
       </header>
