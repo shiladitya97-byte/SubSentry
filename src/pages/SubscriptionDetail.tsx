@@ -167,9 +167,25 @@ const SubscriptionDetail = () => {
     );
   }
 
-  const daysUntilRenewal = Math.ceil(
-    (new Date(subscription.nextRenewalDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
-  );
+  const msPerDay = 1000 * 60 * 60 * 24;
+  const renewalDate = new Date(subscription.nextRenewalDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  renewalDate.setHours(0, 0, 0, 0);
+  const daysUntilRenewal = Math.round((renewalDate.getTime() - today.getTime()) / msPerDay);
+
+  const renewalLabel =
+    daysUntilRenewal > 1
+      ? `Next renewal in ${daysUntilRenewal} days`
+      : daysUntilRenewal === 1
+      ? 'Next renewal is tomorrow'
+      : daysUntilRenewal === 0
+      ? 'Next renewal is today'
+      : daysUntilRenewal === -1
+      ? 'Renewal was yesterday'
+      : `Renewal overdue by ${Math.abs(daysUntilRenewal)} days`;
+
+  const isOverdue = daysUntilRenewal < 0;
 
   const Icon = categoryIcons[subscription.category];
   const description = categoryDescriptions[subscription.category];
