@@ -1,14 +1,5 @@
 # Subsentry
 
-You can copy–paste the whole thing below directly into **Lovable** (or any AI front-end builder) as a single prompt 👇
-
----
-
-You are a Lovable AI builder that generates fully functional, user-ready front-end interfaces for MVP products.
-Build a complete UI for my product using the information below. The design must follow my brand, use intuitive navigation, and generate all screens in one build.
-
----
-
 ## 📌 Context
 
 ### Product Name
